@@ -32,7 +32,7 @@
             border-radius: 12px;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
             width: 100%;
-            max-width: 460px;
+            max-width: 480px;
             padding: 24px;
         }
 
@@ -43,10 +43,38 @@
             letter-spacing: 1.5px;
             text-transform: uppercase;
             color: #ffffff;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             text-shadow: 2px 2px 0px #000;
-            border-bottom: 2px solid #3b3f4e;
-            padding-bottom: 10px;
+        }
+
+        /* Mode Selector Tabs */
+        .mode-toggle {
+            display: flex;
+            background-color: #1a1c23;
+            padding: 4px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #383d4c;
+        }
+
+        .mode-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            background: transparent;
+            color: #a3a8b8;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+
+        .mode-btn.active {
+            background-color: #4e82ee;
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
         .input-grid {
@@ -137,7 +165,6 @@
             letter-spacing: 0.5px;
         }
 
-        /* Game Specific Header Colors */
         .bg-health { background-color: #3b8226; }
         .bg-dps { background-color: #8b3a3a; }
         .bg-size { background-color: #8c734b; }
@@ -156,22 +183,28 @@
 
 <div class="hud-panel">
     <div class="hud-header">UNIT CALCULATOR</div>
+
+    <!-- Mode Selector Tabs -->
+    <div class="mode-toggle">
+        <button id="btn-forward" class="mode-btn active" onclick="setMode('forward')">Base → Traited</button>
+        <button id="btn-reverse" class="mode-btn" onclick="setMode('reverse')">Traited → Base</button>
+    </div>
     
     <div class="input-grid">
         <div class="input-group">
-            <label>Base HP</label>
+            <label id="lbl-hp">Base HP</label>
             <input type="number" id="hp" value="5000" oninput="calculate()">
         </div>
         <div class="input-group">
-            <label>Base DPS</label>
+            <label id="lbl-dps">Base DPS</label>
             <input type="number" id="dps" value="2" oninput="calculate()">
         </div>
         <div class="input-group">
-            <label>Base Size</label>
+            <label id="lbl-size">Base Size</label>
             <input type="number" id="size" value="5" oninput="calculate()">
         </div>
         <div class="input-group">
-            <label>Base Speed</label>
+            <label id="lbl-speed">Base Speed</label>
             <input type="number" id="speed" value="25" oninput="calculate()">
         </div>
         
@@ -187,7 +220,7 @@
         </div>
     </div>
 
-    <div class="results-header">MODIFIED STATS</div>
+    <div class="results-header" id="results-title">MODIFIED STATS</div>
 
     <div class="stats-grid">
         <div class="stat-card">
@@ -210,6 +243,38 @@
 </div>
 
 <script>
+let currentMode = 'forward';
+
+function setMode(mode) {
+    currentMode = mode;
+    
+    const btnForward = document.getElementById('btn-forward');
+    const btnReverse = document.getElementById('btn-reverse');
+    const resultsTitle = document.getElementById('results-title');
+
+    if (mode === 'forward') {
+        btnForward.classList.add('active');
+        btnReverse.classList.remove('active');
+        resultsTitle.innerText = "MODIFIED STATS";
+        
+        document.getElementById('lbl-hp').innerText = "Base HP";
+        document.getElementById('lbl-dps').innerText = "Base DPS";
+        document.getElementById('lbl-size').innerText = "Base Size";
+        document.getElementById('lbl-speed').innerText = "Base Speed";
+    } else {
+        btnReverse.classList.add('active');
+        btnForward.classList.remove('active');
+        resultsTitle.innerText = "ORIGINAL BASE STATS";
+
+        document.getElementById('lbl-hp').innerText = "Current HP";
+        document.getElementById('lbl-dps').innerText = "Current DPS";
+        document.getElementById('lbl-size').innerText = "Current Size";
+        document.getElementById('lbl-speed').innerText = "Current Speed";
+    }
+
+    calculate();
+}
+
 function calculate() {
     let hp = parseFloat(document.getElementById('hp').value) || 0;
     let dps = parseFloat(document.getElementById('dps').value) || 0;
@@ -217,20 +282,40 @@ function calculate() {
     let speed = parseFloat(document.getElementById('speed').value) || 0;
     let trait = document.getElementById('trait').value;
 
-    if (trait === "Gloom") {
-        speed *= 0.50;
-        hp *= 3.00;
-        size -= 2;
-    } else if (trait === "Awakened") {
-        hp *= 2.50;
-        dps *= 2.50;
-    } else if (trait === "Ghostly") {
-        hp *= 2.00;
-        dps *= 2.00;
-        speed *= 1.50;
-        size -= 1;
-    } else if (trait === "Lightning") {
-        dps *= 3.00;
+    if (currentMode === 'forward') {
+        // Forward Calculation: Base -> Traited
+        if (trait === "Gloom") {
+            speed *= 0.50;
+            hp *= 3.00;
+            size -= 2;
+        } else if (trait === "Awakened") {
+            hp *= 2.50;
+            dps *= 2.50;
+        } else if (trait === "Ghostly") {
+            hp *= 2.00;
+            dps *= 2.00;
+            speed *= 1.50;
+            size -= 1;
+        } else if (trait === "Lightning") {
+            dps *= 3.00;
+        }
+    } else {
+        // Reverse Calculation: Traited -> Base
+        if (trait === "Gloom") {
+            speed /= 0.50;
+            hp /= 3.00;
+            size += 2;
+        } else if (trait === "Awakened") {
+            hp /= 2.50;
+            dps /= 2.50;
+        } else if (trait === "Ghostly") {
+            hp /= 2.00;
+            dps /= 2.00;
+            speed /= 1.50;
+            size += 1;
+        } else if (trait === "Lightning") {
+            dps /= 3.00;
+        }
     }
 
     size = Math.max(1, size);
