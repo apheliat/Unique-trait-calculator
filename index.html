@@ -185,11 +185,15 @@
         }
 
         /* Highlight Classes */
-        .stat-val.better {
+        .stat-val.best {
             color: #4ade80 !important; /* Green */
         }
 
-        .stat-val.worse {
+        .stat-val.middle {
+            color: #facc15 !important; /* Yellow */
+        }
+
+        .stat-val.worst {
             color: #f87171 !important; /* Red */
         }
     </style>
@@ -223,10 +227,10 @@
     <div class="trait-selection-container">
         <label>Select Traits to Compare</label>
         <div class="trait-checkboxes">
-            <label class="checkbox-label"><input type="checkbox" id="chk-gloom" onchange="calculate()"> Gloom</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-gloom" checked onchange="calculate()"> Gloom</label>
             <label class="checkbox-label"><input type="checkbox" id="chk-awakened" checked onchange="calculate()"> Awakened</label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-ghostly" onchange="calculate()"> Ghostly</label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-lightning" onchange="calculate()"> Lightning</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-ghostly" checked onchange="calculate()"> Ghostly</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-lightning" checked onchange="calculate()"> Lightning</label>
         </div>
     </div>
 
@@ -275,7 +279,6 @@ function calculate() {
             speed *= 1.50;
             size -= 1;
         } else if (t.name === "Lightning") {
-            // Adjusted multiplier to match in-game 4.5x scaling
             dps *= 4.50;
         }
 
@@ -297,27 +300,6 @@ function calculate() {
         return;
     }
 
-    // Determine colors when comparing exactly 2 traits
-    const isComparingTwo = (selectedTraits.length === 2);
-
-    function getStatClass(statKey, valA, valB, isTraitA) {
-        if (!isComparingTwo) return '';
-        
-        let higherIsBetter = true;
-        if (statKey === 'size') higherIsBetter = false;
-
-        const currentVal = isTraitA ? valA : valB;
-        const otherVal = isTraitA ? valB : valA;
-
-        if (currentVal === otherVal) return '';
-
-        if (higherIsBetter) {
-            return currentVal > otherVal ? 'better' : 'worse';
-        } else {
-            return currentVal < otherVal ? 'better' : 'worse';
-        }
-    }
-
     // Build Table Header
     let headerHTML = `<thead><tr><th class="stat-tag-cell">STAT</th>`;
     traitData.forEach(t => {
@@ -333,6 +315,31 @@ function calculate() {
         { key: 'speed', label: 'SPEED', class: 'bg-speed' }
     ];
 
+    // Multi-trait color ranking function
+    function getStatClass(statKey, currentVal, allValues) {
+        if (allValues.length <= 1) return '';
+
+        // Check if all values are equal (e.g. ties)
+        const allEqual = allValues.every(val => val === allValues[0]);
+        if (allEqual) return '';
+
+        let higherIsBetter = (statKey !== 'size');
+
+        let maxVal = Math.max(...allValues);
+        let minVal = Math.min(...allValues);
+
+        let bestVal = higherIsBetter ? maxVal : minVal;
+        let worstVal = higherIsBetter ? minVal : maxVal;
+
+        if (currentVal === bestVal) {
+            return 'best'; // Green
+        } else if (currentVal === worstVal) {
+            return 'worst'; // Red
+        } else {
+            return 'middle'; // Yellow
+        }
+    }
+
     // Build Table Body
     let bodyHTML = `<tbody>`;
     statsList.forEach(stat => {
@@ -341,15 +348,13 @@ function calculate() {
                 <div class="stat-tag ${stat.class}">${stat.label}</div>
             </td>`;
         
-        traitData.forEach((t, idx) => {
-            let cls = '';
-            if (isComparingTwo) {
-                const valA = traitData[0][stat.key];
-                const valB = traitData[1][stat.key];
-                cls = getStatClass(stat.key, valA, valB, idx === 0);
-            }
+        // Collect all values for this specific stat
+        const allValues = traitData.map(t => t[stat.key]);
 
-            bodyHTML += `<td class="stat-val ${cls}">${Math.round(t[stat.key]).toLocaleString()}</td>`;
+        traitData.forEach(t => {
+            const val = t[stat.key];
+            const cls = getStatClass(stat.key, val, allValues);
+            bodyHTML += `<td class="stat-val ${cls}">${Math.round(val).toLocaleString()}</td>`;
         });
 
         bodyHTML += `</tr>`;
