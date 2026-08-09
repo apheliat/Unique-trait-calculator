@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Unit Trait Calculator</title>
+    <title>Unit Trait Comparison Calculator</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
     <style>
         * {
@@ -32,66 +32,33 @@
             border-radius: 12px;
             box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
             width: 100%;
-            max-width: 480px;
+            max-width: 900px;
             padding: 24px;
         }
 
         .hud-header {
             text-align: center;
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 700;
             letter-spacing: 1.5px;
             text-transform: uppercase;
             color: #ffffff;
-            margin-bottom: 16px;
-            text-shadow: 2px 2px 0px #000;
-        }
-
-        /* Mode Selector Tabs */
-        .mode-toggle {
-            display: flex;
-            background-color: #1a1c23;
-            padding: 4px;
-            border-radius: 8px;
             margin-bottom: 20px;
-            border: 1px solid #383d4c;
-        }
-
-        .mode-btn {
-            flex: 1;
-            padding: 8px 12px;
-            border: none;
-            background: transparent;
-            color: #a3a8b8;
-            font-weight: 700;
-            font-size: 0.85rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            text-align: center;
-        }
-
-        .mode-btn.active {
-            background-color: #4e82ee;
-            color: #ffffff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+            text-shadow: 2px 2px 0px #000;
+            border-bottom: 2px solid #3b3f4e;
+            padding-bottom: 10px;
         }
 
         .input-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(4, 1fr);
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
         .input-group {
             display: flex;
             flex-direction: column;
-        }
-
-        .input-group.full-width {
-            grid-column: span 2;
-            margin-top: 4px;
         }
 
         label {
@@ -103,7 +70,7 @@
             letter-spacing: 0.5px;
         }
 
-        input, select {
+        input {
             background-color: #1a1c23;
             border: 2px solid #3d4252;
             border-radius: 8px;
@@ -115,33 +82,77 @@
             transition: border-color 0.2s;
         }
 
-        input:focus, select:focus {
+        input:focus {
             border-color: #4e82ee;
         }
 
-        select {
-            cursor: pointer;
+        /* Checkbox Selection Area */
+        .trait-selection-container {
+            background-color: #1a1c23;
+            border: 2px solid #3d4252;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
         }
 
-        /* Results Display Section */
-        .results-header {
-            text-align: center;
-            font-size: 1rem;
-            font-weight: 700;
-            color: #d1d5db;
-            margin-top: 20px;
-            margin-bottom: 12px;
-            letter-spacing: 1px;
+        .trait-checkboxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 8px;
         }
 
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
+        .checkbox-label {
+            display: flex;
+            align-items: center;
             gap: 8px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #4e82ee;
+        }
+
+        /* Tables Grid */
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .trait-card {
             background-color: #1e2029;
-            padding: 10px;
             border-radius: 10px;
             border: 2px solid #14151b;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .trait-card-title {
+            background-color: #383d4c;
+            color: #ffffff;
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            padding: 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #14151b;
+            text-shadow: 1px 1px 0px #000;
+        }
+
+        .stats-list {
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .stat-card {
@@ -173,157 +184,129 @@
         .stat-value {
             font-size: 1.1rem;
             font-weight: 700;
-            padding: 8px 2px;
+            padding: 6px 2px;
             color: #ffffff;
             text-shadow: 1px 1px 2px #000;
+        }
+
+        @media (max-width: 600px) {
+            .input-grid {
+                grid-template-columns: 1fr 1fr;
+            }
         }
     </style>
 </head>
 <body>
 
 <div class="hud-panel">
-    <div class="hud-header">UNIT CALCULATOR</div>
-
-    <!-- Mode Selector Tabs -->
-    <div class="mode-toggle">
-        <button id="btn-forward" class="mode-btn active" onclick="setMode('forward')">Base → Traited</button>
-        <button id="btn-reverse" class="mode-btn" onclick="setMode('reverse')">Traited → Base</button>
-    </div>
+    <div class="hud-header">TRAIT COMPARISON CALCULATOR</div>
     
+    <!-- Base Inputs -->
     <div class="input-grid">
         <div class="input-group">
-            <label id="lbl-hp">Base HP</label>
+            <label>Base HP</label>
             <input type="number" id="hp" value="5000" oninput="calculate()">
         </div>
         <div class="input-group">
-            <label id="lbl-dps">Base DPS</label>
+            <label>Base DPS</label>
             <input type="number" id="dps" value="2" oninput="calculate()">
         </div>
         <div class="input-group">
-            <label id="lbl-size">Base Size</label>
+            <label>Base Size</label>
             <input type="number" id="size" value="5" oninput="calculate()">
         </div>
         <div class="input-group">
-            <label id="lbl-speed">Base Speed</label>
+            <label>Base Speed</label>
             <input type="number" id="speed" value="25" oninput="calculate()">
-        </div>
-        
-        <div class="input-group full-width">
-            <label>Select Trait</label>
-            <select id="trait" onchange="calculate()">
-                <option value="None">None</option>
-                <option value="Gloom">Gloom</option>
-                <option value="Awakened">Awakened</option>
-                <option value="Ghostly">Ghostly</option>
-                <option value="Lightning">Lightning</option>
-            </select>
         </div>
     </div>
 
-    <div class="results-header" id="results-title">MODIFIED STATS</div>
+    <!-- Select Traits -->
+    <div class="trait-selection-container">
+        <label>Select Traits to Compare</label>
+        <div class="trait-checkboxes">
+            <label class="checkbox-label"><input type="checkbox" id="chk-gloom" checked onchange="calculate()"> Gloom</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-awakened" checked onchange="calculate()"> Awakened</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-ghostly" checked onchange="calculate()"> Ghostly</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-lightning" checked onchange="calculate()"> Lightning</label>
+        </div>
+    </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-label bg-health">HEALTH</div>
-            <div class="stat-value" id="out-hp">5,000</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label bg-dps">DPS</div>
-            <div class="stat-value" id="out-dps">2</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label bg-size">SIZE</div>
-            <div class="stat-value" id="out-size">5</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-label bg-speed">SPEED</div>
-            <div class="stat-value" id="out-speed">25</div>
-        </div>
+    <!-- Output Tables Grid -->
+    <div class="tables-grid" id="tables-container">
+        <!-- Generated dynamically via JavaScript -->
     </div>
 </div>
 
 <script>
-let currentMode = 'forward';
-
-function setMode(mode) {
-    currentMode = mode;
-    
-    const btnForward = document.getElementById('btn-forward');
-    const btnReverse = document.getElementById('btn-reverse');
-    const resultsTitle = document.getElementById('results-title');
-
-    if (mode === 'forward') {
-        btnForward.classList.add('active');
-        btnReverse.classList.remove('active');
-        resultsTitle.innerText = "MODIFIED STATS";
-        
-        document.getElementById('lbl-hp').innerText = "Base HP";
-        document.getElementById('lbl-dps').innerText = "Base DPS";
-        document.getElementById('lbl-size').innerText = "Base Size";
-        document.getElementById('lbl-speed').innerText = "Base Speed";
-    } else {
-        btnReverse.classList.add('active');
-        btnForward.classList.remove('active');
-        resultsTitle.innerText = "ORIGINAL BASE STATS";
-
-        document.getElementById('lbl-hp').innerText = "Current HP";
-        document.getElementById('lbl-dps').innerText = "Current DPS";
-        document.getElementById('lbl-size').innerText = "Current Size";
-        document.getElementById('lbl-speed').innerText = "Current Speed";
-    }
-
-    calculate();
-}
-
 function calculate() {
-    let hp = parseFloat(document.getElementById('hp').value) || 0;
-    let dps = parseFloat(document.getElementById('dps').value) || 0;
-    let size = parseFloat(document.getElementById('size').value) || 0;
-    let speed = parseFloat(document.getElementById('speed').value) || 0;
-    let trait = document.getElementById('trait').value;
+    let baseHp = parseFloat(document.getElementById('hp').value) || 0;
+    let baseDps = parseFloat(document.getElementById('dps').value) || 0;
+    let baseSize = parseFloat(document.getElementById('size').value) || 0;
+    let baseSpeed = parseFloat(document.getElementById('speed').value) || 0;
 
-    if (currentMode === 'forward') {
-        // Forward Calculation: Base -> Traited
-        if (trait === "Gloom") {
-            speed *= 0.50;
-            hp *= 3.00;
-            size -= 2;
-        } else if (trait === "Awakened") {
-            hp *= 2.50;
-            dps *= 2.50;
-        } else if (trait === "Ghostly") {
-            hp *= 2.00;
-            dps *= 2.00;
-            speed *= 1.50;
-            size -= 1;
-        } else if (trait === "Lightning") {
-            dps *= 3.00;
+    const traits = [
+        { id: 'chk-gloom', name: 'Gloom' },
+        { id: 'chk-awakened', name: 'Awakened' },
+        { id: 'chk-ghostly', name: 'Ghostly' },
+        { id: 'chk-lightning', name: 'Lightning' }
+    ];
+
+    const container = document.getElementById('tables-container');
+    container.innerHTML = '';
+
+    traits.forEach(trait => {
+        if (document.getElementById(trait.id).checked) {
+            let hp = baseHp;
+            let dps = baseDps;
+            let size = baseSize;
+            let speed = baseSpeed;
+
+            if (trait.name === "Gloom") {
+                speed *= 0.50;
+                hp *= 3.00;
+                size -= 2;
+            } else if (trait.name === "Awakened") {
+                hp *= 2.50;
+                dps *= 2.50;
+            } else if (trait.name === "Ghostly") {
+                hp *= 2.00;
+                dps *= 2.00;
+                speed *= 1.50;
+                size -= 1;
+            } else if (trait.name === "Lightning") {
+                dps *= 3.00;
+            }
+
+            size = Math.max(1, size);
+
+            // Create Trait Table Card
+            const card = document.createElement('div');
+            card.className = 'trait-card';
+            card.innerHTML = `
+                <div class="trait-card-title">${trait.name}</div>
+                <div class="stats-list">
+                    <div class="stat-card">
+                        <div class="stat-label bg-health">HEALTH</div>
+                        <div class="stat-value">${Math.round(hp).toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label bg-dps">DPS</div>
+                        <div class="stat-value">${Math.round(dps).toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label bg-size">SIZE</div>
+                        <div class="stat-value">${Math.round(size).toLocaleString()}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label bg-speed">SPEED</div>
+                        <div class="stat-value">${Math.round(speed).toLocaleString()}</div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
         }
-    } else {
-        // Reverse Calculation: Traited -> Base
-        if (trait === "Gloom") {
-            speed /= 0.50;
-            hp /= 3.00;
-            size += 2;
-        } else if (trait === "Awakened") {
-            hp /= 2.50;
-            dps /= 2.50;
-        } else if (trait === "Ghostly") {
-            hp /= 2.00;
-            dps /= 2.00;
-            speed /= 1.50;
-            size += 1;
-        } else if (trait === "Lightning") {
-            dps /= 3.00;
-        }
-    }
-
-    size = Math.max(1, size);
-
-    document.getElementById('out-hp').innerText = Math.round(hp).toLocaleString();
-    document.getElementById('out-dps').innerText = Math.round(dps).toLocaleString();
-    document.getElementById('out-size').innerText = Math.round(size).toLocaleString();
-    document.getElementById('out-speed').innerText = Math.round(speed).toLocaleString();
+    });
 }
 
 // Initial Run
