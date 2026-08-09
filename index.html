@@ -34,11 +34,16 @@
             width: 100%;
             max-width: 900px;
             padding: 24px;
+            transition: max-width 0.3s ease;
+        }
+
+        .hud-panel.single-mode {
+            max-width: 480px;
         }
 
         .hud-header {
             text-align: center;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             font-weight: 700;
             letter-spacing: 1.5px;
             text-transform: uppercase;
@@ -62,7 +67,7 @@
         }
 
         label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             font-weight: 700;
             color: #a3a8b8;
             margin-bottom: 6px;
@@ -75,8 +80,8 @@
             border: 2px solid #3d4252;
             border-radius: 8px;
             color: #ffffff;
-            padding: 10px;
-            font-size: 1rem;
+            padding: 8px 10px;
+            font-size: 0.95rem;
             font-weight: 700;
             outline: none;
             transition: border-color 0.2s;
@@ -92,14 +97,14 @@
             border: 2px solid #3d4252;
             border-radius: 8px;
             padding: 12px 16px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .trait-checkboxes {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
-            margin-top: 8px;
+            margin-top: 6px;
         }
 
         .checkbox-label {
@@ -107,7 +112,7 @@
             align-items: center;
             gap: 8px;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 700;
             color: #ffffff;
         }
@@ -119,58 +124,52 @@
             accent-color: #4e82ee;
         }
 
-        /* Tables Grid */
-        .tables-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .trait-card {
+        /* Comparison Table Styling */
+        .table-wrapper {
             background-color: #1e2029;
             border-radius: 10px;
             border: 2px solid #14151b;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
+            overflow-x: auto;
         }
 
-        .trait-card-title {
-            background-color: #383d4c;
-            color: #ffffff;
+        table {
+            width: 100%;
+            border-collapse: collapse;
             text-align: center;
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 8px 0;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #2b2e39;
+        }
+
+        th {
+            background-color: #282c37;
+            font-size: 0.9rem;
             text-transform: uppercase;
             letter-spacing: 1px;
-            border-bottom: 2px solid #14151b;
+            color: #a3a8b8;
+        }
+
+        th.trait-header {
+            background-color: #383d4c;
+            color: #ffffff;
+            font-size: 1rem;
             text-shadow: 1px 1px 0px #000;
         }
 
-        .stats-list {
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
+        td.stat-tag-cell {
+            width: 110px;
+            padding: 6px;
         }
 
-        .stat-card {
-            background-color: #2b2e39;
-            border-radius: 6px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            border: 1px solid #383d4c;
-        }
-
-        .stat-label {
+        .stat-tag {
             width: 100%;
             text-align: center;
             font-size: 0.75rem;
             font-weight: 700;
-            padding: 4px 0;
+            padding: 6px 0;
+            border-radius: 4px;
             color: #ffffff;
             text-shadow: 1px 1px 0px rgba(0,0,0,0.5);
             letter-spacing: 0.5px;
@@ -181,12 +180,20 @@
         .bg-size { background-color: #8c734b; }
         .bg-speed { background-color: #4b6b8c; }
 
-        .stat-value {
+        .stat-val {
             font-size: 1.1rem;
             font-weight: 700;
-            padding: 6px 2px;
             color: #ffffff;
             text-shadow: 1px 1px 2px #000;
+        }
+
+        /* Highlight Classes */
+        .stat-val.better {
+            color: #4ade80 !important; /* Green */
+        }
+
+        .stat-val.worse {
+            color: #f87171 !important; /* Red */
         }
 
         @media (max-width: 600px) {
@@ -198,7 +205,7 @@
 </head>
 <body>
 
-<div class="hud-panel">
+<div class="hud-panel" id="main-panel">
     <div class="hud-header">TRAIT COMPARISON CALCULATOR</div>
     
     <!-- Base Inputs -->
@@ -227,14 +234,16 @@
         <div class="trait-checkboxes">
             <label class="checkbox-label"><input type="checkbox" id="chk-gloom" checked onchange="calculate()"> Gloom</label>
             <label class="checkbox-label"><input type="checkbox" id="chk-awakened" checked onchange="calculate()"> Awakened</label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-ghostly" checked onchange="calculate()"> Ghostly</label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-lightning" checked onchange="calculate()"> Lightning</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-ghostly" onchange="calculate()"> Ghostly</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-lightning" onchange="calculate()"> Lightning</label>
         </div>
     </div>
 
-    <!-- Output Tables Grid -->
-    <div class="tables-grid" id="tables-container">
-        <!-- Generated dynamically via JavaScript -->
+    <!-- Output Table -->
+    <div class="table-wrapper">
+        <table id="comparison-table">
+            <!-- Dynamically populated -->
+        </table>
     </div>
 </div>
 
@@ -245,68 +254,126 @@ function calculate() {
     let baseSize = parseFloat(document.getElementById('size').value) || 0;
     let baseSpeed = parseFloat(document.getElementById('speed').value) || 0;
 
-    const traits = [
+    const traitDefs = [
         { id: 'chk-gloom', name: 'Gloom' },
         { id: 'chk-awakened', name: 'Awakened' },
         { id: 'chk-ghostly', name: 'Ghostly' },
         { id: 'chk-lightning', name: 'Lightning' }
     ];
 
-    const container = document.getElementById('tables-container');
-    container.innerHTML = '';
+    // Filter checked traits
+    let selectedTraits = traitDefs.filter(t => document.getElementById(t.id).checked);
 
-    traits.forEach(trait => {
-        if (document.getElementById(trait.id).checked) {
-            let hp = baseHp;
-            let dps = baseDps;
-            let size = baseSize;
-            let speed = baseSpeed;
+    // Dynamic width adjustments for single trait view
+    const panel = document.getElementById('main-panel');
+    if (selectedTraits.length === 1) {
+        panel.classList.add('single-mode');
+    } else {
+        panel.classList.remove('single-mode');
+    }
 
-            if (trait.name === "Gloom") {
-                speed *= 0.50;
-                hp *= 3.00;
-                size -= 2;
-            } else if (trait.name === "Awakened") {
-                hp *= 2.50;
-                dps *= 2.50;
-            } else if (trait.name === "Ghostly") {
-                hp *= 2.00;
-                dps *= 2.00;
-                speed *= 1.50;
-                size -= 1;
-            } else if (trait.name === "Lightning") {
-                dps *= 3.00;
+    // Calculate modified stats for selected traits
+    let traitData = selectedTraits.map(t => {
+        let hp = baseHp;
+        let dps = baseDps;
+        let size = baseSize;
+        let speed = baseSpeed;
+
+        if (t.name === "Gloom") {
+            speed *= 0.50;
+            hp *= 3.00;
+            size -= 2;
+        } else if (t.name === "Awakened") {
+            hp *= 2.50;
+            dps *= 2.50;
+        } else if (t.name === "Ghostly") {
+            hp *= 2.00;
+            dps *= 2.00;
+            speed *= 1.50;
+            size -= 1;
+        } else if (t.name === "Lightning") {
+            dps *= 3.00;
+        }
+
+        size = Math.max(1, size);
+
+        return {
+            name: t.name,
+            hp: hp,
+            dps: dps,
+            size: size,
+            speed: speed
+        };
+    });
+
+    const table = document.getElementById('comparison-table');
+    
+    if (selectedTraits.length === 0) {
+        table.innerHTML = `<tr><td style="padding:20px; color:#a3a8b8;">Please select at least one trait above.</td></tr>`;
+        return;
+    }
+
+    // Determine colors when comparing exactly 2 traits
+    const isComparingTwo = (selectedTraits.length === 2);
+
+    function getStatClass(statKey, valA, valB, isTraitA) {
+        if (!isComparingTwo) return '';
+        
+        let higherIsBetter = true;
+        // For Size/Supply, lower size is typically better in-game
+        if (statKey === 'size') higherIsBetter = false;
+
+        const currentVal = isTraitA ? valA : valB;
+        const otherVal = isTraitA ? valB : valA;
+
+        if (currentVal === otherVal) return '';
+
+        if (higherIsBetter) {
+            return currentVal > otherVal ? 'better' : 'worse';
+        } else {
+            return currentVal < otherVal ? 'better' : 'worse';
+        }
+    }
+
+    // Build Table Header
+    let headerHTML = `<thead><tr><th class="stat-tag-cell">STAT</th>`;
+    traitData.forEach(t => {
+        headerHTML += `<th class="trait-header">${t.name}</th>`;
+    });
+    headerHTML += `</tr></thead>`;
+
+    // Stats config
+    const statsList = [
+        { key: 'hp', label: 'HEALTH', class: 'bg-health' },
+        { key: 'dps', label: 'DPS', class: 'bg-dps' },
+        { key: 'size', label: 'SIZE', class: 'bg-size' },
+        { key: 'speed', label: 'SPEED', class: 'bg-speed' }
+    ];
+
+    // Build Table Body
+    let bodyHTML = `<tbody>`;
+    statsList.forEach(stat => {
+        bodyHTML += `<tr>
+            <td class="stat-tag-cell">
+                <div class="stat-tag ${stat.class}">${stat.label}</div>
+            </td>`;
+        
+        traitData.forEach((t, idx) => {
+            let cls = '';
+            if (isComparingTwo) {
+                const valA = traitData[0][stat.key];
+                const valB = traitData[1][stat.key];
+                cls = getStatClass(stat.key, valA, valB, idx === 0);
             }
 
-            size = Math.max(1, size);
+            bodyHTML += `<td class="stat-val ${cls}">${Math.round(t[stat.key]).toLocaleString()}</td>`;
+        });
 
-            // Create Trait Table Card
-            const card = document.createElement('div');
-            card.className = 'trait-card';
-            card.innerHTML = `
-                <div class="trait-card-title">${trait.name}</div>
-                <div class="stats-list">
-                    <div class="stat-card">
-                        <div class="stat-label bg-health">HEALTH</div>
-                        <div class="stat-value">${Math.round(hp).toLocaleString()}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label bg-dps">DPS</div>
-                        <div class="stat-value">${Math.round(dps).toLocaleString()}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label bg-size">SIZE</div>
-                        <div class="stat-value">${Math.round(size).toLocaleString()}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label bg-speed">SPEED</div>
-                        <div class="stat-value">${Math.round(speed).toLocaleString()}</div>
-                    </div>
-                </div>
-            `;
-            container.appendChild(card);
-        }
+        bodyHTML += `</tr>`;
     });
+    bodyHTML += `</tbody>`;
+
+    table.innerHTML = headerHTML + bodyHTML;
 }
 
 // Initial Run
