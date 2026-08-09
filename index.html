@@ -4,102 +4,217 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Unit Trait Calculator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Fredoka', 'Segoe UI', sans-serif;
+            user-select: none;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #0f172a;
-            color: #f8fafc;
+            background-color: #12151c;
+            background-image: 
+                radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 0);
+            background-size: 24px 24px;
+            color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
         }
-        .card {
-            background-color: #1e293b;
-            padding: 2rem;
+
+        .hud-panel {
+            background-color: #2b2e39;
+            border: 3px solid #1a1c23;
             border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.7);
             width: 100%;
-            max-width: 450px;
+            max-width: 460px;
+            padding: 24px;
         }
-        h2 { text-align: center; margin-bottom: 1.5rem; color: #38bdf8; }
-        .input-group { margin-bottom: 1rem; }
-        label { display: block; margin-bottom: 0.4rem; font-size: 0.9rem; color: #94a3b8; }
-        input, select {
-            width: 100%;
-            padding: 0.6rem;
-            border-radius: 6px;
-            border: 1px solid #334155;
-            background-color: #0f172a;
-            color: #fff;
-            box-sizing: border-box;
-            font-size: 1rem;
+
+        .hud-header {
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: #ffffff;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px #000;
+            border-bottom: 2px solid #3b3f4e;
+            padding-bottom: 10px;
         }
-        .results {
+
+        .input-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem;
-            margin-top: 1.5rem;
-            padding-top: 1rem;
-            border-top: 1px solid #334155;
+            gap: 12px;
+            margin-bottom: 16px;
         }
-        .stat-box {
-            background-color: #0f172a;
-            padding: 0.8rem;
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-group.full-width {
+            grid-column: span 2;
+            margin-top: 4px;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #a3a8b8;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            background-color: #1a1c23;
+            border: 2px solid #3d4252;
             border-radius: 8px;
-            text-align: center;
+            color: #ffffff;
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        .stat-title { font-size: 0.8rem; color: #94a3b8; }
-        .stat-value { font-size: 1.2rem; font-weight: bold; color: #38bdf8; margin-top: 0.2rem; }
+
+        input:focus, select:focus {
+            border-color: #4e82ee;
+        }
+
+        select {
+            cursor: pointer;
+        }
+
+        /* Results Display Section */
+        .results-header {
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #d1d5db;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            background-color: #1e2029;
+            padding: 10px;
+            border-radius: 10px;
+            border: 2px solid #14151b;
+        }
+
+        .stat-card {
+            background-color: #2b2e39;
+            border-radius: 6px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #383d4c;
+        }
+
+        .stat-label {
+            width: 100%;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 0;
+            color: #ffffff;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.5);
+            letter-spacing: 0.5px;
+        }
+
+        /* Game Specific Header Colors */
+        .bg-health { background-color: #3b8226; }
+        .bg-dps { background-color: #8b3a3a; }
+        .bg-size { background-color: #8c734b; }
+        .bg-speed { background-color: #4b6b8c; }
+
+        .stat-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 8px 2px;
+            color: #ffffff;
+            text-shadow: 1px 1px 2px #000;
+        }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <h2>⚔️ Trait Calculator</h2>
+<div class="hud-panel">
+    <div class="hud-header">UNIT CALCULATOR</div>
     
-    <div class="input-group">
-        <label>Base HP</label>
-        <input type="number" id="hp" value="100" oninput="calculate()">
-    </div>
-    <div class="input-group">
-        <label>Base Speed</label>
-        <input type="number" id="speed" value="10" oninput="calculate()">
-    </div>
-    <div class="input-group">
-        <label>Base DPS</label>
-        <input type="number" id="dps" value="50" oninput="calculate()">
-    </div>
-    <div class="input-group">
-        <label>Base Size / Supply</label>
-        <input type="number" id="size" value="5" oninput="calculate()">
-    </div>
-    <div class="input-group">
-        <label>Select Trait</label>
-        <select id="trait" onchange="calculate()">
-            <option value="None">None</option>
-            <option value="Gloom">Gloom</option>
-            <option value="Awakened">Awakened</option>
-            <option value="Ghostly">Ghostly</option>
-            <option value="Lightning">Lightning</option>
-        </select>
+    <div class="input-grid">
+        <div class="input-group">
+            <label>Base HP</label>
+            <input type="number" id="hp" value="5000" oninput="calculate()">
+        </div>
+        <div class="input-group">
+            <label>Base DPS</label>
+            <input type="number" id="dps" value="2" oninput="calculate()">
+        </div>
+        <div class="input-group">
+            <label>Base Size</label>
+            <input type="number" id="size" value="5" oninput="calculate()">
+        </div>
+        <div class="input-group">
+            <label>Base Speed</label>
+            <input type="number" id="speed" value="25" oninput="calculate()">
+        </div>
+        
+        <div class="input-group full-width">
+            <label>Select Trait</label>
+            <select id="trait" onchange="calculate()">
+                <option value="None">None</option>
+                <option value="Gloom">Gloom</option>
+                <option value="Awakened">Awakened</option>
+                <option value="Ghostly">Ghostly</option>
+                <option value="Lightning">Lightning</option>
+            </select>
+        </div>
     </div>
 
-    <div class="results">
-        <div class="stat-box"><div class="stat-title">HP</div><div class="stat-value" id="out-hp">100</div></div>
-        <div class="stat-box"><div class="stat-title">Speed</div><div class="stat-value" id="out-speed">10</div></div>
-        <div class="stat-box"><div class="stat-title">DPS</div><div class="stat-value" id="out-dps">50</div></div>
-        <div class="stat-box"><div class="stat-title">Size</div><div class="stat-value" id="out-size">5</div></div>
+    <div class="results-header">MODIFIED STATS</div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-label bg-health">HEALTH</div>
+            <div class="stat-value" id="out-hp">5,000</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label bg-dps">DPS</div>
+            <div class="stat-value" id="out-dps">2</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label bg-size">SIZE</div>
+            <div class="stat-value" id="out-size">5</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label bg-speed">SPEED</div>
+            <div class="stat-value" id="out-speed">25</div>
+        </div>
     </div>
 </div>
 
 <script>
 function calculate() {
     let hp = parseFloat(document.getElementById('hp').value) || 0;
-    let speed = parseFloat(document.getElementById('speed').value) || 0;
     let dps = parseFloat(document.getElementById('dps').value) || 0;
     let size = parseFloat(document.getElementById('size').value) || 0;
+    let speed = parseFloat(document.getElementById('speed').value) || 0;
     let trait = document.getElementById('trait').value;
 
     if (trait === "Gloom") {
@@ -120,11 +235,14 @@ function calculate() {
 
     size = Math.max(1, size);
 
-    document.getElementById('out-hp').innerText = hp.toFixed(1);
-    document.getElementById('out-speed').innerText = speed.toFixed(1);
-    document.getElementById('out-dps').innerText = dps.toFixed(1);
-    document.getElementById('out-size').innerText = size.toFixed(1);
+    document.getElementById('out-hp').innerText = Math.round(hp).toLocaleString();
+    document.getElementById('out-dps').innerText = Math.round(dps).toLocaleString();
+    document.getElementById('out-size').innerText = Math.round(size).toLocaleString();
+    document.getElementById('out-speed').innerText = Math.round(speed).toLocaleString();
 }
+
+// Initial Run
+calculate();
 </script>
 
 </body>
